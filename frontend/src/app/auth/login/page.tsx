@@ -1,11 +1,10 @@
 "use client";
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import { MdEmail } from "react-icons/md";
 import { RiLockPasswordLine } from "react-icons/ri";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { Toast } from "primereact/toast";
 import Link from "next/link";
 
 type LoginFormInputs = {
@@ -20,43 +19,29 @@ export default function LoginForm() {
     formState: { errors },
   } = useForm<LoginFormInputs>();
   const [showpass, setshowpass] = useState(false);
-  const toast = useRef<Toast>(null);
 
   const onSubmit = async (data: LoginFormInputs) => {
     try {
       const response = await axios.post(
-        `${
-          process.env.NEXT_PUBLIC_SERVER 
-        }/users/login`,
+        `${process.env.NEXT_PUBLIC_SERVER}/users/login`,
         data,
         { withCredentials: true }
       );
 
-      toast.current?.show({
-        severity: "success",
-        summary: "Login Success",
-        detail: "Successfully logged in",
-      });
-
       setTimeout(() => {
         window.location.href = "/";
-      }, 1000);
+      }, 500);
     } catch (error: any) {
       const message =
         error.response?.status === 401
           ? "Wrong credentials. Please try again."
           : "An unexpected error occurred.";
-      toast.current?.show({
-        severity: "error",
-        summary: "Login Error",
-        detail: message,
-      });
+      alert(message);
     }
   };
 
   return (
     <main className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <Toast ref={toast} />
       <div className="w-full max-w-md">
         <div className="text-center mb-6">
           <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
@@ -155,9 +140,7 @@ export default function LoginForm() {
             <button
               className="flex items-center justify-center gap-3 w-full p-3 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors duration-200 rounded-full shadow-sm cursor-pointer"
               onClick={() =>
-                (window.location.href = `${
-                  process.env.NEXT_PUBLIC_SERVER 
-                }/users/google`)
+                (window.location.href = `${process.env.NEXT_PUBLIC_SERVER}/users/google`)
               }
             >
               <img src="/google.svg" alt="Google" className="w-5 h-5" />
