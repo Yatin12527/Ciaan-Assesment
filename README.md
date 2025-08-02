@@ -123,11 +123,4 @@ To give users full control over their content, I added a secure delete feature.
 
 ---
 
-### Demo User Credentials
 
-To make testing easier, you can use the following credentials to log in and explore the app:
-
-* **Email:** `testuser@example.com`
-* **Password:** `password123`
-
-Thank you for the opportunity!
