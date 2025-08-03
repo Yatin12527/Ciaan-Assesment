@@ -95,52 +95,62 @@ export const login = async (req, res) => {
 };
 
 export const callback = async (req, res) => {
-  const code = req.query.code;
-  const tokenRes = await axios.post(process.env.TOKEN_URI, {
-    code,
-    client_id: process.env.GOOGLE_CLIENT_ID,
-    client_secret: process.env.GOOGLE_CLIENT_SECRET,
-    redirect_uri: process.env.GOOGLE_REDIRECT_URI,
-    grant_type: "authorization_code",
-  });
-
-  const access_token = tokenRes.data.access_token;
-
-  const userRes = await axios.get(
-    "https://www.googleapis.com/oauth2/v2/userinfo",
-    {
-      headers: {
-        Authorization: `Bearer ${access_token}`,
-      },
-    }
-  );
-
-  const { name, email, picture } = userRes.data;
-  let user = await User.findOne({ username: email });
-
-  if (!user) {
-    user = await User.create({
-      name: name,
-      username: email,
-      password: "GOOGLE_USER_NO_PASSWORD",
-      picture: picture,
+  try {
+    const code = req.query.code;
+    const tokenRes = await axios.post(process.env.TOKEN_URI, {
+      code,
+      client_id: process.env.GOOGLE_CLIENT_ID,
+      client_secret: process.env.GOOGLE_CLIENT_SECRET,
+      redirect_uri: process.env.GOOGLE_REDIRECT_URI,
+      grant_type: "authorization_code",
     });
+
+    const access_token = tokenRes.data.access_token;
+
+    const userRes = await axios.get(
+      "https://www.googleapis.com/oauth2/v2/userinfo",
+      {
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+        },
+      }
+    );
+
+    const { name, email, picture } = userRes.data;
+    let user = await User.findOne({ username: email });
+
+    if (!user) {
+      user = await User.create({
+        name: name,
+        username: email,
+        password: "GOOGLE_USER_NO_PASSWORD",
+        picture: picture,
+      });
+    }
+
+    let token = jwt.sign(
+      {
+        id: user.id,
+        name: user.name,
+        username: user.username,
+        picture: user.picture,
+        bio: user.bio,
+      },
+      process.env.JWTSECRET,
+      { expiresIn: "30d" }
+    );
+
+    res.cookie("token", token, cookieOptions);
+    res.redirect(process.env.FRONTEND_SERVICE);
+  } catch (error) {
+    console.error(
+      "Error during Google OAuth callback:",
+      error.response?.data || error.message
+    );
+    res.redirect(
+      `${process.env.FRONTEND_SERVICE}/auth/login?error=google_oauth_failed`
+    );
   }
-
-  let token = jwt.sign(
-    {
-      id: user.id,
-      name: user.name,
-      username: user.username,
-      picture: user.picture,
-      bio: user.bio,
-    },
-    process.env.JWTSECRET,
-    { expiresIn: "30d" }
-  );
-
-  res.cookie("token", token, cookieOptions);
-  res.redirect(process.env.FRONTEND_SERVICE);
 };
 
 export const googleLogin = async (req, res) => {
@@ -156,8 +166,9 @@ export const googleLogin = async (req, res) => {
 
 export const logout = (req, res) => {
   res.cookie("token", "", {
-    httpOnly: true,
+    ...cookieOptions,
     expires: new Date(0),
+    maxAge: 0,
   });
   res.status(200).json({ message: "Logged out successfully" });
 };
