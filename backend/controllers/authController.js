@@ -3,6 +3,13 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import axios from "axios";
 
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+};
+
 export const signup = async (req, res) => {
   const name = req.body.name;
   const username = req.body.username;
@@ -39,15 +46,9 @@ export const signup = async (req, res) => {
     { expiresIn: "30d" }
   );
 
-  res.cookie("token", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-  });
+  res.cookie("token", token, cookieOptions);
   return res.status(200).json({
     message: "signed up successfully",
-    redirect: process.env.FRONTEND_SERVICE,
   });
 };
 
@@ -81,12 +82,7 @@ export const login = async (req, res) => {
       { expiresIn: "30d" }
     );
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 30 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie("token", token, cookieOptions);
 
     return res.status(200).json({
       message: "Logged in successfully",
@@ -96,17 +92,6 @@ export const login = async (req, res) => {
   res.status(401).json({
     msg: "Invalid credentials",
   });
-};
-
-export const googleLogin = async (req, res) => {
-  const redirectUrl =
-    `https://accounts.google.com/o/oauth2/v2/auth?` +
-    `client_id=${process.env.GOOGLE_CLIENT_ID}` +
-    `&redirect_uri=${process.env.GOOGLE_REDIRECT_URI}` +
-    `&response_type=code` +
-    `&scope=openid%20email%20profile`;
-
-  res.redirect(redirectUrl);
 };
 
 export const callback = async (req, res) => {
@@ -131,40 +116,17 @@ export const callback = async (req, res) => {
   );
 
   const { name, email, picture } = userRes.data;
-  const existingUser = await User.findOne({ username: email });
-  if (existingUser) {
-    const token = jwt.sign(
-      {
-        id: existingUser.id,
-        name: existingUser.name,
-        username: existingUser.username,
-        picture: existingUser.picture,
-        bio: existingUser.bio,
-      },
-      process.env.JWTSECRET,
-      { expiresIn: "30d" }
-    );
+  let user = await User.findOne({ username: email });
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 30 * 24 * 60 * 60 * 1000,
+  if (!user) {
+    user = await User.create({
+      name: name,
+      username: email,
+      password: "GOOGLE_USER_NO_PASSWORD",
+      picture: picture,
     });
-
-    return res.redirect(
-      process.env.FRONTEND_SERVICE 
-    );
   }
 
-  await User.create({
-    name: name,
-    username: email,
-    password: "GOOGLE",
-    picture: picture,
-  });
-
-  let user = await User.findOne({ username: email });
   let token = jwt.sign(
     {
       id: user.id,
@@ -177,13 +139,19 @@ export const callback = async (req, res) => {
     { expiresIn: "30d" }
   );
 
-  res.cookie("token", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 30 * 24 * 60 * 60 * 1000,
-  });
-  res.redirect(process.env.FRONTEND_SERVICE );
+  res.cookie("token", token, cookieOptions);
+  res.redirect(process.env.FRONTEND_SERVICE);
+};
+
+export const googleLogin = async (req, res) => {
+  const redirectUrl =
+    `https://accounts.google.com/o/oauth2/v2/auth?` +
+    `client_id=${process.env.GOOGLE_CLIENT_ID}` +
+    `&redirect_uri=${process.env.GOOGLE_REDIRECT_URI}` +
+    `&response_type=code` +
+    `&scope=openid%20email%20profile`;
+
+  res.redirect(redirectUrl);
 };
 
 export const logout = (req, res) => {
