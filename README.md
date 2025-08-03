@@ -122,5 +122,5 @@ To give users full control over their content, I added a secure delete feature.
 * Clicking this icon allows you to permanently delete the post. This action is protected on the backend to ensure users can only delete their own content.
 
 ---
-
+**Note :- In case you are using brave browser plase turn on your "allow third party cookies" in order to sign in and out with google Oauth**
 
