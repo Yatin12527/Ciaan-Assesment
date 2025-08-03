@@ -28,26 +28,40 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const response = await axios.get<User>(
-          `${
-            process.env.NEXT_PUBLIC_SERVER 
-          }/users/me`,
-          { withCredentials: true }
-        );
-        setUser(response.data);
-      } catch (error) {
-        console.error("Not authenticated:", error);
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchUser = async () => {
+    try {
+      console.log(
+        "Fetching user from:",
+        `${process.env.NEXT_PUBLIC_SERVER}/users/me`
+      );
+      const response = await axios.get<User>(
+        `${process.env.NEXT_PUBLIC_SERVER}/users/me`,
+        { withCredentials: true }
+      );
+      console.log("User fetched successfully:", response.data);
+      setUser(response.data);
+    } catch (error) {
+      console.error("Not authenticated:", error);
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchUser();
   }, []);
+
+  useEffect(() => {
+    const checkForOAuthReturn = () => {
+      if (window.location.pathname === "/" && !user && !loading) {
+        console.log("Possible OAuth return detected, refetching user...");
+        fetchUser();
+      }
+    };
+    const timer = setTimeout(checkForOAuthReturn, 1000);
+    return () => clearTimeout(timer);
+  }, [user, loading]);
 
   const value = { user, setUser, loading };
 
