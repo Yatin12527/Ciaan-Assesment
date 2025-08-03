@@ -1,0 +1,7 @@
+# frontend/netlify.toml
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[build]
+  command = "npm run build"
+  # No need to set publish — the Next.js plugin handles output.
