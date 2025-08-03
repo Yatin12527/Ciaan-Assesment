@@ -95,8 +95,10 @@ export const login = async (req, res) => {
 };
 
 export const callback = async (req, res) => {
+   console.log("--- GOOGLE CALLBACK ROUTE HIT ---");
   try {
     const code = req.query.code;
+    console.log("Received code from Google:", code);
     const tokenRes = await axios.post(process.env.TOKEN_URI, {
       code,
       client_id: process.env.GOOGLE_CLIENT_ID,
