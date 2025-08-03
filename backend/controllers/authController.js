@@ -95,22 +95,9 @@ export const login = async (req, res) => {
 };
 
 export const callback = async (req, res) => {
-  console.log("--- GOOGLE CALLBACK ROUTE HIT ---");
-  console.log("Request headers:", req.headers);
-  console.log("Request origin:", req.get("origin"));
-
   try {
     const code = req.query.code;
-    console.log("Received code from Google:", code);
 
-    if (req.query.error) {
-      console.log("OAuth error:", req.query.error);
-      return res.redirect(
-        `${process.env.FRONTEND_SERVICE}/auth/login?error=${req.query.error}`
-      );
-    }
-
-    console.log("Making token request to Google...");
     const tokenRes = await axios.post(process.env.TOKEN_URI, {
       code,
       client_id: process.env.GOOGLE_CLIENT_ID,
@@ -119,11 +106,8 @@ export const callback = async (req, res) => {
       grant_type: "authorization_code",
     });
 
-    console.log("Token response status:", tokenRes.status);
     const access_token = tokenRes.data.access_token;
-    console.log("Access token received:", access_token ? "Yes" : "No");
 
-    console.log("Fetching user info from Google...");
     const userRes = await axios.get(
       "https://www.googleapis.com/oauth2/v2/userinfo",
       {
@@ -133,25 +117,18 @@ export const callback = async (req, res) => {
       }
     );
 
-    console.log("User info response status:", userRes.status);
-    console.log("User data:", userRes.data);
-
     const { name, email, picture } = userRes.data;
     let user = await User.findOne({ username: email });
 
     if (!user) {
-      console.log("Creating new user for:", email);
       user = await User.create({
         name: name,
         username: email,
         password: "GOOGLE_USER_NO_PASSWORD",
         picture: picture,
       });
-    } else {
-      console.log("Found existing user:", user.username);
     }
 
-    console.log("Creating JWT token...");
     let token = jwt.sign(
       {
         id: user.id,
@@ -164,17 +141,13 @@ export const callback = async (req, res) => {
       { expiresIn: "30d" }
     );
 
-    console.log("Setting cookie with options:", cookieOptions);
     res.cookie("token", token, cookieOptions);
-
-    console.log("Redirecting to:", process.env.FRONTEND_SERVICE);
     res.redirect(process.env.FRONTEND_SERVICE);
   } catch (error) {
-    console.error("Error during Google OAuth callback:");
-    console.error("Error message:", error.message);
-    console.error("Error response data:", error.response?.data);
-    console.error("Error response status:", error.response?.status);
-
+    console.error(
+      "Error during Google OAuth callback:",
+      error.response?.data || error.message
+    );
     res.redirect(
       `${process.env.FRONTEND_SERVICE}/auth/login?error=google_oauth_failed`
     );
