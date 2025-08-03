@@ -6,6 +6,7 @@ import { PostCard } from "@/app/components/PostCard";
 import { useAuth } from "@/app/context/AuthContext";
 import { EditProfileModal } from "@/app/components/EditProfileModal";
 import { User, UserProfile } from "@/types";
+import { HiOutlinePencilSquare } from "react-icons/hi2";
 
 export default function ProfilePage() {
   const params = useParams();
@@ -81,7 +82,7 @@ export default function ProfilePage() {
               className="w-32 h-32 rounded-full mx-auto mb-4 border-4 border-white shadow-lg"
             />
             <h1 className="text-3xl font-bold">{profile.user.name}</h1>
-            <p className="text-gray-600">{profile.user.username}</p>
+            <p className="text-gray-600 truncate">{profile.user.username}</p>
             <p className="text-gray-800 mt-4 max-w-lg mx-auto">
               {profile.user.bio}
             </p>
@@ -89,9 +90,11 @@ export default function ProfilePage() {
           {isOwner && (
             <button
               onClick={() => setIsEditing(true)}
-              className="absolute top-4 right-4 bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300"
+              className="absolute top-4 right-4 bg-transparent sm:bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 flex items-center gap-2"
             >
-              Edit Profile
+              <HiOutlinePencilSquare className=" sm:hidden text-blue-600"  size={25}/>
+              <span className="hidden sm:inline">Edit Profile</span>
+              <HiOutlinePencilSquare className="w-4 h-4 hidden sm:inline" />
             </button>
           )}
         </div>

@@ -1,11 +1,12 @@
 "use client";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { MdEmail } from "react-icons/md";
 import { RiLockPasswordLine } from "react-icons/ri";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import Link from "next/link";
+import Image from "next/image";
 
 type LoginFormInputs = {
   username: string;
@@ -22,18 +23,17 @@ export default function LoginForm() {
 
   const onSubmit = async (data: LoginFormInputs) => {
     try {
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_SERVER}/users/login`,
-        data,
-        { withCredentials: true }
-      );
+      await axios.post(`${process.env.NEXT_PUBLIC_SERVER}/users/login`, data, {
+        withCredentials: true,
+      });
 
       setTimeout(() => {
         window.location.href = "/";
       }, 500);
-    } catch (error: any) {
+    } catch (error) {
+      const axiosError = error as AxiosError;
       const message =
-        error.response?.status === 401
+        axiosError.response?.status === 401
           ? "Wrong credentials. Please try again."
           : "An unexpected error occurred.";
       alert(message);
@@ -143,7 +143,7 @@ export default function LoginForm() {
                 (window.location.href = `${process.env.NEXT_PUBLIC_SERVER}/users/google`)
               }
             >
-              <img src="/google.svg" alt="Google" className="w-5 h-5" />
+              <Image src="/google.svg" alt="Google" width={20} height={20} />
               <span className="font-medium text-sm">Continue with Google</span>
             </button>
           </div>

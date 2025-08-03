@@ -47,10 +47,10 @@ export const PostCard: React.FC<PostCardProps> = ({
       {isOwner && onPostDelete && (
         <button
           onClick={handleDeleteClick}
-          className="absolute top-4 right-4 p-1 text-red-500 hover:text-red-600 rounded-full transition-colors"
+          className="absolute sm:top-4 top-5 right-1 sm:right-4 p-1 text-red-500 hover:text-red-600 rounded-full transition-colors"
           aria-label="Delete post"
         >
-          <IoTrashOutline className="w-6 h-6" />
+          <IoTrashOutline className=" w-5 h-5 sm:w-6 sm:h-6" />
         </button>
       )}
 

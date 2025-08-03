@@ -1,11 +1,12 @@
 "use client";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { MdDriveFileRenameOutline, MdEmail } from "react-icons/md";
 import { RiLockPasswordLine } from "react-icons/ri";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import Link from "next/link";
+import Image from "next/image";
 
 type SignupFormInputs = {
   name: string;
@@ -33,9 +34,10 @@ export default function SignupForm() {
       setTimeout(() => {
         window.location.href = "/";
       }, 500);
-    } catch (error: any) {
+    } catch (error) {
+      const axiosError = error as AxiosError;
       const message =
-        error.response?.status === 401
+        axiosError.response?.status === 401
           ? "This user already exists. Try logging in?"
           : "Something went wrong.";
       console.error("Signup Error:", message);
@@ -171,7 +173,7 @@ export default function SignupForm() {
                 (window.location.href = `${process.env.NEXT_PUBLIC_SERVER}/users/google`)
               }
             >
-              <img src="/google.svg" alt="Google" className="w-5 h-5" />
+              <Image src="/google.svg" alt="Google" width={20} height={20} />
               <span className="font-medium text-sm">Sign up with Google</span>
             </button>
           </div>
