@@ -1,6 +1,0 @@
-# frontend/netlify.toml
-[[plugins]]
-  package = "@netlify/plugin-nextjs"
-
-[build]
-  command = "npm run build"
